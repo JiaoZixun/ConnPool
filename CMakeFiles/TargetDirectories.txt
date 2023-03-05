@@ -1,0 +1,4 @@
+/home/jzx/StudyCpp/ConnPool/CMakeFiles/edit_cache.dir
+/home/jzx/StudyCpp/ConnPool/CMakeFiles/rebuild_cache.dir
+/home/jzx/StudyCpp/ConnPool/CMakeFiles/redispool_test.dir
+/home/jzx/StudyCpp/ConnPool/CMakeFiles/redishelper_test.dir
