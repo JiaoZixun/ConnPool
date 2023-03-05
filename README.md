@@ -31,7 +31,22 @@ make -j4
 
 4. 后续引入头文件SimConnPool.h即可使用，简单应用见tests文件
 
+## 整体架构
+RedisHelper：redis相关操作，创建一个连接时构造函数不做任何事，在connection函数时才真正建立一条连接，每条连接都包含一个指向连接池的指针，为了实现放回操作，基础实现依赖hiredis库中的redisCommand函数
+ConnPool ：连接池模板，初始化时构造函数不做任何操作，在连接池connection时才执行init函数完成每一个连接的初始化，并且依次调用每条连接的connection函数
+Singleton：单例模板，包装ConnPool类，变成单例对象
 
+
+## 使用
+
+```c++
+static SimpleConnPool::redisPool* pool = SimpleConnPool::redisConnPoolMgr::GetInstance();   // 获取一个连接池单例对象，默认5个连接
+pool->connection("127.0.0.1", 6000);      // 连接池内连接上redis，入参：ip、端口号、密码默认为空
+SimpleConnPool::redisPool::connPtr conn = pool->get();      // 取出一条连接
+// TODO
+conn->connBack();     // 放回连接
+
+```
 
 ## 分布式锁
 
