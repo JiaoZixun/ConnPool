@@ -13,6 +13,7 @@ set(
     LIB_LIB
     pthread
     hiredis
+    mysqlcppconn
 )
 
 
@@ -21,6 +22,9 @@ target_link_libraries(redishelper_test ${LIB_LIB})
 
 add_executable(redispool_test tests/redispool_test.cpp)
 target_link_libraries(redispool_test ${LIB_LIB})
+
+add_executable(mysqltest tests/mysqltest.cpp)
+target_link_libraries(mysqltest ${LIB_LIB})
 
 
 

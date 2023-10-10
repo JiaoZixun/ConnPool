@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jzx/StudyCpp/ConnPool/tests/mysqltest.cpp
+iostream
+-
+mysql_connection.h
+-
+mysql_driver.h
+-
+cppconn/driver.h
+-
+cppconn/resultset.h
+-
+cppconn/statement.h
+-
+

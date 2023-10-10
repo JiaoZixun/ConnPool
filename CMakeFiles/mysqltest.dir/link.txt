@@ -1,0 +1,1 @@
+/usr/bin/c++   -rdynamic -O3 -ggdb -std=c++11 -Wall -Wno-deprecated -Werror -Wno-unused-function -Wno-builtin-macro-redefined  -rdynamic CMakeFiles/mysqltest.dir/tests/mysqltest.cpp.o  -o bin/mysqltest   -L/usr/local/lib  -Wl,-rpath,/usr/local/lib -lpthread -lhiredis -lmysqlcppconn 

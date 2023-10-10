@@ -114,6 +114,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named mysqltest
+
+# Build rule for target.
+mysqltest: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 mysqltest
+.PHONY : mysqltest
+
+# fast build rule for target.
+mysqltest/fast:
+	$(MAKE) -f CMakeFiles/mysqltest.dir/build.make CMakeFiles/mysqltest.dir/build
+.PHONY : mysqltest/fast
+
+#=============================================================================
 # Target rules for targets named redispool_test
 
 # Build rule for target.
@@ -138,6 +151,33 @@ redishelper_test: cmake_check_build_system
 redishelper_test/fast:
 	$(MAKE) -f CMakeFiles/redishelper_test.dir/build.make CMakeFiles/redishelper_test.dir/build
 .PHONY : redishelper_test/fast
+
+tests/mysqltest.o: tests/mysqltest.cpp.o
+
+.PHONY : tests/mysqltest.o
+
+# target to build an object file
+tests/mysqltest.cpp.o:
+	$(MAKE) -f CMakeFiles/mysqltest.dir/build.make CMakeFiles/mysqltest.dir/tests/mysqltest.cpp.o
+.PHONY : tests/mysqltest.cpp.o
+
+tests/mysqltest.i: tests/mysqltest.cpp.i
+
+.PHONY : tests/mysqltest.i
+
+# target to preprocess a source file
+tests/mysqltest.cpp.i:
+	$(MAKE) -f CMakeFiles/mysqltest.dir/build.make CMakeFiles/mysqltest.dir/tests/mysqltest.cpp.i
+.PHONY : tests/mysqltest.cpp.i
+
+tests/mysqltest.s: tests/mysqltest.cpp.s
+
+.PHONY : tests/mysqltest.s
+
+# target to generate assembly for a file
+tests/mysqltest.cpp.s:
+	$(MAKE) -f CMakeFiles/mysqltest.dir/build.make CMakeFiles/mysqltest.dir/tests/mysqltest.cpp.s
+.PHONY : tests/mysqltest.cpp.s
 
 tests/redishelper_test.o: tests/redishelper_test.cpp.o
 
@@ -200,9 +240,13 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
+	@echo "... mysqltest"
 	@echo "... rebuild_cache"
 	@echo "... redispool_test"
 	@echo "... redishelper_test"
+	@echo "... tests/mysqltest.o"
+	@echo "... tests/mysqltest.i"
+	@echo "... tests/mysqltest.s"
 	@echo "... tests/redishelper_test.o"
 	@echo "... tests/redishelper_test.i"
 	@echo "... tests/redishelper_test.s"

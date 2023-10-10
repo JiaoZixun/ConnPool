@@ -6,6 +6,28 @@
 
 #IncludeRegexTransform: 
 
+/home/jzx/StudyCpp/ConnPool/RedisHelper.h
+hiredis/hiredis.h
+-
+iostream
+-
+string
+-
+cstring
+-
+memory
+-
+vector
+-
+list
+-
+sstream
+-
+atomic
+-
+SimConnPool.h
+/home/jzx/StudyCpp/ConnPool/SimConnPool.h
+
 /home/jzx/StudyCpp/ConnPool/SimConnPool.h
 hiredis/hiredis.h
 -
@@ -27,8 +49,8 @@ atomic
 -
 
 /home/jzx/StudyCpp/ConnPool/tests/redishelper_test.cpp
-../SimConnPool.h
-/home/jzx/StudyCpp/ConnPool/SimConnPool.h
+../RedisHelper.h
+/home/jzx/StudyCpp/ConnPool/RedisHelper.h
 iostream
 -
 memory

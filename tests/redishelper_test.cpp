@@ -1,4 +1,4 @@
-#include "../SimConnPool.h"
+#include "../RedisHelper.h"
 #include <iostream>
 #include <memory>
 #include <unistd.h>
@@ -10,8 +10,7 @@ int run(const std::string& threadname = "") {
     // conn
     // sylar::RedisHelper::ptr rediscon = std::make_shared<sylar::RedisHelper>();
     auto rediscon = SimpleConnPool::RedisHelper::ptr(new SimpleConnPool::RedisHelper());
-    SimpleConnPool::RedisState connstate = rediscon->simpleConn("127.0.0.1", 6000);
-    if(connstate != SimpleConnPool::RedisState::M_REDIS_OK) {
+    if(!rediscon->simpleConn("127.0.0.1", 6000)) {
         std::cout << "redis connection error! errstr:" << rediscon->getError() << std::endl;
         return 0;
     }

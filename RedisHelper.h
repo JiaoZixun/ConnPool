@@ -1,5 +1,6 @@
-#ifndef _SYLAR_CONNPOOL_H_
-#define _SYLAR_CONNPOOL_H_
+#ifndef _SYLAR__REDISHELPER_H_
+#define _SYLAR__REDISHELPER_H_
+
 
 #include <hiredis/hiredis.h>
 #include <iostream>
@@ -10,6 +11,9 @@
 #include <list>
 #include <sstream>
 #include <atomic>
+#include "SimConnPool.h"
+
+
 
 
 
@@ -17,188 +21,30 @@
 
 namespace SimpleConnPool {
 
-
-// 单例模板
-template<typename T, typename X = void, int N = 0>
-class Singleton{
-public:
-    static T* GetInstance() {
-        static T v;
-        //printf("T:xxxx");
-        return &v;
-    }
-};
-
-
-//通过加锁对象的构造和析构加检锁
-template<class T>
-struct ScopedLockImpl {
-public:
-    ScopedLockImpl(T& mutex)
-        :m_mutex(mutex) {
-            m_mutex.lock();
-            m_locked = true;
-    }
-    ~ScopedLockImpl() {
-        unlock();
-    }
-
-    void lock() {
-        if(!m_locked) {
-            m_mutex.lock();
-            m_locked = true;
-        }
-    }
-
-    void unlock() {
-        if(m_locked) {
-            m_mutex.unlock();
-            m_locked = false;
-        }
-    }
-private:
-    T& m_mutex;
-    bool m_locked;
-};
-
-// 互斥锁
-class Mutex{
-public:
-    typedef ScopedLockImpl<Mutex> Lock;
-    Mutex() {
-        pthread_mutex_init(&m_mutex, nullptr);
-    }
-    ~Mutex() {
-        pthread_mutex_destroy(&m_mutex);
-    }
-
-    void lock() {
-        pthread_mutex_lock(&m_mutex);
-    }
-
-    void unlock() {
-        pthread_mutex_unlock(&m_mutex);
-    }
-private:
-    pthread_mutex_t m_mutex;
-};
-
-
-// class RedisHelper;
-class MysqlHelper;
-
-
-/*
-连接池类模板：提供取出和放回操作
-连接池在构造时不做操作，进行连接时初始化每个连接并连上redis服务器
-*/
-template<typename T>
-class ConnPool {
-public:
-    typedef std::shared_ptr<ConnPool<T>> ptr;           // 连接池的智能指针
-    typedef std::shared_ptr<T> connPtr;                 // 连接对象的智能指针
-    typedef Mutex MutexType;
-
-    ConnPool() {
-        std::cout << "ConnPool()" << std::endl;
-    }
-
-    ~ConnPool() {
-        destoryConnPool();
-    }
-
-    void destoryConnPool() {
-        MutexType::Lock lock(m_mutex);
-        std::cout << "~ConnPool()" << std::endl;
-        if(!is_stop) {
-            while(!m_freeque.empty()) {
-                connPtr x = m_freeque.front();
-                m_freeque.pop_front();
-                x.reset();
-            }
-        }
-        is_stop = true;
-        m_freenum = 0;
-        m_busynum = 0;
-    }
-
-    void init(int conn_size = 5) {
-        MutexType::Lock lock(m_mutex);
-        if(is_stop) {
-            for(int i=0; i<conn_size; ++i) {
-                connPtr x = std::make_shared<T>();
-                // 空闲队列放入连接对象的智能指针
-                m_freeque.push_back(x);
-            }
-            is_stop = false;
-        }
-    }
-
-    connPtr get() {
-        // 加锁 
-        MutexType::Lock lock(m_mutex);
-        if(m_freenum <= 0) {
-            //std::cout << "no free connection!" << std::endl;
-            return nullptr;
-        }
-        
-        connPtr res = m_freeque.front();
-        m_freeque.pop_front();
-        --m_freenum;
-        ++m_busynum;
-        //std::cout << "get use_count:" << res.use_count() << std::endl;
-        return res;
-    }
-
-    void back(connPtr& conn) {
-        // 加锁
-        MutexType::Lock lock(m_mutex);
-        m_freeque.push_back(conn);
-        ++m_freenum;
-    }
-
-    void stop() {destoryConnPool();}
-
-    int getFreeNum() {return m_freenum;}
-
-    void connection(const std::string& host, int port, const std::string& pwd="", int conn_size = 5) {
-        init(conn_size);
-        MutexType::Lock lock(m_mutex);
-        if(!is_conn) {
-            for(auto it = m_freeque.begin(); it != m_freeque.end(); ++it) {
-                if((*it)->simpleConn(host, port, pwd)) {
-                    std::cout << "connection pool is error!" << std::endl;
-                    continue;
-                }
-                ++m_freenum;
-            }
-            is_conn = true;
-        }
-    }
-    // void connection(const std::string& host, int port, const std::string& pwd="", int conn_size = 5) = 0;
-    
-protected:
-    std::list<connPtr> m_freeque;               // 空闲队列
-    std::atomic<int> m_busynum{0};              // 工作数量
-    std::atomic<int> m_freenum{0};              // 空闲数量
-
-    bool is_stop = true;                        // 停止标记
-    bool is_conn = false;                       // 连接标记
-    int m_capacity;                             // 连接池容量
-
-    MutexType m_mutex;                          // 互斥锁
-
+// redis状态
+enum class RedisState {
+    M_REDIS_OK = 0,             //执行成功
+    M_CONNECT_FAIL = -1,        //连接redis失败
+    M_CONTEXT_ERROR = -2,       //RedisContext返回错误
+    M_REPLY_ERROR = -3,         //redisReply错误
+    M_EXE_COMMAND_ERROR = -4,   //redis命令执行错误
+    M_EXECUTE_FAIL = -5,        //执行失败
+    M_RETURN_NULL = -6          //返回结果为空
 };
 
 
 
 
 
-# if 0
+class RedisHelper;
+//redis连接池 单例
+typedef ConnPool<RedisHelper> redisPool;
+typedef Singleton<redisPool> redisConnPoolMgr;
+
 /*
 redis相关操作：对hiredis进行二次封装，每个连接包含指向连接池的指针
 */
-class RedisHelper : public std::enable_shared_from_this<RedisHelper> {
+class RedisHelper : public std::enable_shared_from_this<RedisHelper>, public redisPool {
 public:
     typedef std::shared_ptr<RedisHelper> ptr;
     typedef Mutex MutexType;
@@ -227,7 +73,7 @@ public:
     }
 
     // 连接redis数据库，默认pwd为空
-    RedisState simpleConn(const std::string& host, int port, const std::string& pwd="") {
+    bool simpleConn(const std::string& host, int port, const std::string& pwd="") {
         m_host = host;
         m_port = port;
         m_pwd = pwd;
@@ -237,19 +83,19 @@ public:
                 m_error_msg = m_rdsctx->errstr;
                 m_state = RedisState::M_CONNECT_FAIL;
                 std::cout << "connection error! errstr:" << m_error_msg << std::endl;
-                return m_state;
+                return m_state == RedisState::M_REDIS_OK;
             } 
             else {
                 m_error_msg = "context is null";
                 m_state = RedisState::M_CONTEXT_ERROR;
                 std::cout << "context is null! errstr:" << m_error_msg << std::endl;
-                return m_state;
+                return m_state == RedisState::M_REDIS_OK;
             }
         }
         m_error_msg = "ok";
         m_state = RedisState::M_REDIS_OK;
         std::cout << "redis connection is ok!" << std::endl;
-        return m_state;
+        return m_state == RedisState::M_REDIS_OK;
     }
 
     
@@ -632,12 +478,8 @@ public:
 
 };
 
-#endif
 
 
 }
-
-
-
 
 #endif
