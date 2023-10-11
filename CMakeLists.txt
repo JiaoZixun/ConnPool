@@ -26,6 +26,9 @@ target_link_libraries(redispool_test ${LIB_LIB})
 add_executable(mysqltest tests/mysqltest.cpp)
 target_link_libraries(mysqltest ${LIB_LIB})
 
+add_executable(table_test tests/table_test.cpp)
+target_link_libraries(table_test ${LIB_LIB})
+
 
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
